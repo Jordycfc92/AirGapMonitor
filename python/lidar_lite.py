@@ -1,4 +1,4 @@
-import smbus
+import smbus2
 import time
 
 class Lidar_Lite():
@@ -14,7 +14,7 @@ class Lidar_Lite():
 
   def connect(self, bus):
     try:
-      self.bus = smbus.SMBus(bus)
+      self.bus = smbus2.SMBus(bus)
       time.sleep(0.5)
       return 0
     except:

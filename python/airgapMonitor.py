@@ -11,7 +11,7 @@ class AirgapMonitor:
         self.lidar = Lidar_Lite()
         statusConnection = self.lidar.connect(lidarBus)
 
-        #check connection
+        #check connection to lidar sensor
         if statusConnection == -1:
             print("Connection not established to sensor")
         else:
@@ -45,3 +45,16 @@ class AirgapMonitor:
 
             #for sake of number of measurments one per second is the starting figure 
                 time.sleep(1)
+
+    def calculatedAirgap(self, ):
+        #airgaps are calculated by leg length - (water depth + leg penetration)
+        #water depth is calculated by lowest astronomical tide (LAT) + tide 
+        #leg penetration is calculated during zero airgap (ZAG) by leg length - water depth
+
+        pass
+
+    def showCurrentAirgapAverage (self,):
+        pass
+
+    def showOperationReport(self):
+        pass

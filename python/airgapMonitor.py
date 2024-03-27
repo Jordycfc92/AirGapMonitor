@@ -3,21 +3,35 @@ from lidar_lite import Lidar_Lite
 import array as arr
 
 class AirgapMonitor:
-    def __init__(self, lidarBus=1, currentLidarAirgap = 0.0, currentCalculatedAirgap = 0.0, preHoldCondition = False, currentOperationHistory = [0], currentLeg1length =0, currentLeg1Pen =0):
+    def __init__(self, lidarBus=1, retries=5, backoff_factor=2, currentLidarAirgap = 0.0, currentCalculatedAirgap = 0.0, preHoldCondition = False, currentOperationHistory = [0], currentLeg1length =0, currentLeg1Pen =0):
         self.lidarAirgap = currentLidarAirgap
         self.calculatedAirgap = currentCalculatedAirgap
         self.leg1length = currentLeg1length
         self.leg1Penetration = currentLeg1Pen
         self.preHoldCondition = preHoldCondition
         self.history = currentOperationHistory
+        self.retries = retries
+        self.backoff_factor = backoff_factor
         self.lidar = Lidar_Lite()
-        statusConnection = self.lidar.connect(lidarBus)
+        self.connect_with_retry(lidarBus)
+        
 
-        #check connection to lidar sensor
-        if statusConnection == -1:
-            print("Connection not established to sensor")
-        else:
-            print("Lidar sensor connection established")
+    def connect_with_retry(self, lidarBus):
+        attempt = 0
+        while attempt < self.retries:
+            print(f"Attempt {attempt + 1} to connect to the LiDAR sensor.")
+            statusConnection = self.lidar.connect(lidarBus)
+            
+            if statusConnection == 0:
+                print("Lidar sensor connection established.")
+                return True
+            else:
+                print("Connection not established, retrying...")
+                time.sleep((2 ** attempt) * self.backoff_factor)
+                attempt += 1
+        
+            print("Failed to establish a connection after several attempts.")
+            return False
 
 
 

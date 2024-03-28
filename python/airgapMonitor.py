@@ -70,6 +70,7 @@ class AirgapMonitor:
                 distance = self.lidar.getDistance()
                 AirgapMonitor.currentLidarAirgap = distance
                 print(f"Current airgap distance: {distance} cm")
+                self.history.append(distance)
 
             except Exception as e:
                 print(f"An error occurred whilst getting the measurement {e}")
@@ -88,7 +89,13 @@ class AirgapMonitor:
          
 
     def showCurrentAirgapAverage (self,):
-        pass
+        #average taken over five minutes, one measurement per second > 60*5
+        if len(self.history) < 300:
+            print("Not enough data for a 5-minute average.")
+            return
+
+        five_minute_average = sum(self.history[-300:]) / 300
+        print(f"5-minute average airgap distance: {five_minute_average} cm")
 
     def showOperationReport(self):
         pass

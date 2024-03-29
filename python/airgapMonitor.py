@@ -67,7 +67,7 @@ class AirgapMonitor:
         # method to measure distance every one second whilst the jack-up is in a pre-hold
         while self.preHoldCondition:
             try:
-                distance = self.lidar.getDistance()
+                distance = (self.lidar.getDistance())/10 #added to modify cm to m
                 AirgapMonitor.currentLidarAirgap = distance
                 print(f"Current airgap distance: {distance} cm")
                 self.history.append(distance)
@@ -94,8 +94,8 @@ class AirgapMonitor:
             print("Not enough data for a 5-minute average.")
             return
 
-        five_minute_average = sum(self.history[-300:]) / 300
-        print(f"5-minute average airgap distance: {five_minute_average} cm")
+        fiveMinuteAverage = sum(self.history[-300:]) / 300
+        print(f"5-minute average airgap distance: {fiveMinuteAverage} cm")
 
     def showOperationReport(self):
         pass

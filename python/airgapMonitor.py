@@ -35,7 +35,7 @@ class AirgapMonitor:
 
 
 
-    def setLeg1Length(self):
+    def set_leg1_length(self):
         try:
             user_input = float(input("Please enter leg 1 length: "))
             if 1.8 <= user_input <= 85.0:
@@ -49,7 +49,7 @@ class AirgapMonitor:
             print("Invalid value entered, please try again")
             return None
         
-    def setLeg1Penetration(self):
+    def set_leg1_penetration(self):
         try:
             user_input = float(input("Please enter leg 1 penetration: "))
             if 0 <= user_input <= 30.0:
@@ -63,7 +63,7 @@ class AirgapMonitor:
             print("Invalid value entered, please try again")
             return None
 
-    def monitorLidarAirgap(self, ):
+    def monitor_lidar_airgap(self, ):
         # method to measure distance every one second whilst the jack-up is in a pre-hold
         while self.preHoldCondition:
             try:
@@ -78,7 +78,7 @@ class AirgapMonitor:
             #for sake of number of measurments one per second is the starting figure 
                 time.sleep(1)
 
-    def monitorCalculatedAirgap(self, ):
+    def monitor_calculated_airgap(self, ):
         #airgaps are calculated by leg length - (water depth + leg penetration)
         #water depth is calculated by lowest astronomical tide (LAT) + tide 
         #leg penetration is calculated at zero airgap (ZAG) by leg length - water depth
@@ -88,14 +88,14 @@ class AirgapMonitor:
 
          
 
-    def showCurrentAirgapAverage (self,):
+    def show_current_airgap_average (self,):
         #average taken over five minutes, one measurement per second > 60*5
         if len(self.history) < 300:
             print("Not enough data for a 5-minute average.")
             return
 
-        fiveMinuteAverage = sum(self.history[-300:]) / 300
-        print(f"5-minute average airgap distance: {fiveMinuteAverage} cm")
+        five_minute_average = sum(self.history[-300:]) / 300
+        print(f"5-minute average airgap distance: {five_minute_average} cm")
 
-    def showOperationReport(self):
+    def show_operation_report(self):
         pass

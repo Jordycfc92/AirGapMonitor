@@ -37,7 +37,7 @@ class SeaLevelAPI:
             print(f"Unknown Error: {err}")
     
 
-fetch = SeaLevelAPI('exclude/config.env')
+""" fetch = SeaLevelAPI('exclude/config.env')
 data = fetch.fetch_data(43.38, -3.01, arrow.now().floor('hour'), arrow.now().floor('hour').shift(hours=8))
 
 for entry in data['data']:
@@ -47,4 +47,4 @@ for entry in data['data']:
     print(f"Time: {time.format('HH:mm')}, tide: {sg}")
 
 #pretty_json = json.dumps(data, indent=4)
-#print(pretty_json) 
+#print(pretty_json)  """

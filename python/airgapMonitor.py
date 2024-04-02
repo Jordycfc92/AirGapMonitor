@@ -1,6 +1,8 @@
 import time
 from lidar_lite import Lidar_Lite
 import array as arr
+import SeaLevelAPI
+import arrow
 
 class AirgapMonitor:
     def __init__(self, lidarBus=1, retries=5, backoff_factor=2, currentLidarAirgap = 0.0, currentCalculatedAirgap = 0.0, preHoldCondition = False, currentOperationHistory = [0], currentLeg1length =0, currentLeg1Pen =0):
@@ -14,6 +16,7 @@ class AirgapMonitor:
         self.backoff_factor = backoff_factor
         self.lidar = Lidar_Lite()
         self.connect_with_retry(lidarBus)
+        self.seaLevelAPI = SeaLevelAPI('exclude/config.env') # instance of sealevelAPI
         
 
     def connect_with_retry(self, lidarBus):
@@ -78,14 +81,24 @@ class AirgapMonitor:
             #for sake of number of measurments one per second is the starting figure 
                 time.sleep(1)
 
-    def monitor_calculated_airgap(self, ):
-        #airgaps are calculated by leg length - (water depth + leg penetration)
-        #water depth is calculated by lowest astronomical tide (LAT) + tide 
-        #leg penetration is calculated at zero airgap (ZAG) by leg length - water depth
+    def monitor_calculated_airgap(self, lat, lng, lowest_tide):
+            # latitude and longitude are provided for the sea level API call
+            totalWaterDepth = (self.self.collect_tide_data(lat, lng)) - lowest_tide
+            if totalWaterDepth is not None:
+                self.calculatedAirgap = self.leg1length - (totalWaterDepth + self.leg1Penetration)
+            else:
+                print("Failed to fetch sea level data for airgap calculation.")
 
-        totalWaterDepth = 10 # this will be from an API call 
-        self.calculatedAirgap = self.leg1length - (totalWaterDepth + self.leg1Penetration)
-
+    
+    def collect_tide_data(self, lat, lng):
+        # current sea level
+        now = arrow.now()
+        data = self.seaLevelAPI.fetch_data(lat, lng, now, now.shift(hours=4))  # Fetch data for the next hour
+        if data and 'data' in data and len(data['data']) > 0:
+            # (sg) from the first entry
+            return data['data'][0]['sg']
+        else:
+            return None
          
 
     def show_current_airgap_average (self,):

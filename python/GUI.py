@@ -3,6 +3,7 @@ import tkinter.messagebox as messagebox
 from tkinter import ttk
 from traceback import clear_frames
 import datetime
+import OperationMonitor
 
 print(tk.Tcl().eval('info patchlevel'))
 
@@ -11,6 +12,7 @@ class AirGapMonitorApp:
         self.root = root
         self.frames = {} 
         self.initialise_UI()
+        self.opsMonitor = OperationMonitor.OperationMonitor()
 
     def initialise_UI(self):
         #self.root.geometry('400x300') 
@@ -45,14 +47,14 @@ class AirGapMonitorApp:
         # secondPage
         frame2 = tk.Frame(self.root)
         self.frames["secondPage"] = frame2
-        waterDepths = [("0100", 30.4), ("0200", 32.1), ("0300", 33.9)]
+
         ttk.Label(frame2, text="Water Depths").pack()
-        tree = ttk.Treeview(frame2, columns=("Time", "Water Depth"), show="headings")
-        tree.heading("Time", text="Time")
-        tree.heading("Water Depth", text="Water Depth")
-        for time, depth in waterDepths:
-            tree.insert("", tk.END, values=(time, depth))
-        tree.pack()
+
+        self.tide_table = ttk.Treeview(frame2, columns=("Time", "Water Depth"), show="headings")
+        self.tide_table.heading("Time", text="Time")
+        self.tide_table.heading("Water Depth", text="Water Depth")
+        self.tide_table.pack()
+
         next_button = tk.Button(frame2, text="Start Pre-Hold", command=self.start_third_page_timer)
         next_button.pack()
 
@@ -88,6 +90,14 @@ class AirGapMonitorApp:
         next_button.grid(row=8, column=0, sticky="W")
 
         self.update_difference()
+
+    def update_tide_table(self, lat, lng):
+        tide_data = self.collect_tide_data(lat, lng)
+        for i in self.tide_table.get_children():
+            self.tide_table.delete(i)
+        # new tide information
+        for time, sg in tide_data:
+            self.tide_table.insert("", tk.END, values=(time, sg))
 
     def start_third_page_timer(self):
         self.show_frame("thirdPage")
@@ -138,7 +148,6 @@ class AirGapMonitorApp:
             print(f"Frame not found: {pageName}")
 
 
-
     def fetch_data(self):
         try:
             latitude = float(self.latEntry.get())
@@ -146,9 +155,22 @@ class AirGapMonitorApp:
             if not -90 <= latitude <= 90 or not -180 <= longitude <= 180:
                 raise ValueError("Latitude must be between -90 and 90 and Longitude must be between -180 and 180.")
             print(f"Fetching data for Latitude: {latitude}, Longitude: {longitude}")
+
+            tide_data = self.opsMonitor.collect_tide_data(latitude, longitude)
+            if tide_data:
+                self.update_tide_table(tide_data)  # Update the tide table with fetched data
+                self.show_frame("secondPage")
+            else:
+                messagebox.showerror("Data Error", "Failed to fetch tide data.")
             self.show_frame("secondPage")  # Transition to the secondPage after fetching data.
         except ValueError as e:
             messagebox.showerror("Input Error", str(e))
+
+    def update_tide_table(self, tide_data):
+        for i in self.tide_table.get_children():
+            self.tide_table.delete(i)
+        for time, sg in tide_data:
+            self.tide_table.insert("", tk.END, values=(time, sg))
 
     def run(self):
         self.show_frame("firstPage") 

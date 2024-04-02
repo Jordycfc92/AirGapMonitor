@@ -1,10 +1,10 @@
 import time
 from lidar_lite import Lidar_Lite
 import array as arr
-import SeaLevelAPI
+from SeaLevelAPI import SeaLevelAPI
 import arrow
 
-class AirgapMonitor:
+class OperationMonitor:
     def __init__(self, lidarBus=1, retries=5, backoff_factor=2, currentLidarAirgap = 0.0, currentCalculatedAirgap = 0.0, preHoldCondition = False, currentOperationHistory = [0], currentLeg1length =0, currentLeg1Pen =0):
         self.lidarAirgap = currentLidarAirgap
         self.calculatedAirgap = currentCalculatedAirgap
@@ -71,7 +71,7 @@ class AirgapMonitor:
         while self.preHoldCondition:
             try:
                 distance = (self.lidar.getDistance())/10 #added to modify cm to m
-                AirgapMonitor.currentLidarAirgap = distance
+                OperationMonitor.currentLidarAirgap = distance
                 print(f"Current airgap distance: {distance} cm")
                 self.history.append(distance)
 
@@ -82,21 +82,36 @@ class AirgapMonitor:
                 time.sleep(1)
 
     def monitor_calculated_airgap(self, lat, lng, lowest_tide):
-            # latitude and longitude are provided for the sea level API call
-            totalWaterDepth = (self.self.collect_tide_data(lat, lng)) - lowest_tide
-            if totalWaterDepth is not None:
-                self.calculatedAirgap = self.leg1length - (totalWaterDepth + self.leg1Penetration)
-            else:
-                print("Failed to fetch sea level data for airgap calculation.")
+        # latitude and longitude are provided for the sea level API call
+        # Changed the collect_tide_data to return a list of tuples for populating tide table on GUI page
+        # Implemented check for data and then taking first tuple for sg to work out airgap 
+        
+        # ***Think about implications for updating the tide table throughout the operation ***
+        tide_data = self.collect_tide_data(lat, lng)
+    
+        # Check to avoid error crashing
+        if tide_data:
+            # Use only the first sg value from the list
+            first_sg = tide_data[0][1] 
+            totalWaterDepth = first_sg + lowest_tide
+        
+            self.calculatedAirgap = self.leg1length - (totalWaterDepth + self.leg1Penetration)
+        else:
+            print("Failed to fetch sea level data for airgap calculation.")
+            self.calculatedAirgap = None 
 
     
     def collect_tide_data(self, lat, lng):
-        # current sea level
+        # current tide range from this hour for the next 4 hours
         now = arrow.now()
-        data = self.seaLevelAPI.fetch_data(lat, lng, now, now.shift(hours=4))  # Fetch data for the next hour
+        data = self.seaLevelAPI.fetch_data(lat, lng, now, now.shift(hours=4))  # *** Adjust time frame for tide from here
+        tide_data =[]
         if data and 'data' in data and len(data['data']) > 0:
-            # (sg) from the first entry
-            return data['data'][0]['sg']
+            for entry in data['data']:
+                time = arrow.get(entry["time"]).format('HH:mm')  # Format time for display
+                sg = entry["sg"]
+                tide_data.append((time, sg))
+            return tide_data
         else:
             return None
          

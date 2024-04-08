@@ -48,12 +48,14 @@ class AirGapMonitorApp:
         frame2 = tk.Frame(self.root)
         self.frames["secondPage"] = frame2
 
-        ttk.Label(frame2, text="Water Depths").pack()
-
-        self.tide_table = ttk.Treeview(frame2, columns=("Time", "Water Depth"), show="headings")
+        # Tide Table
+        ttk.Label(frame3, text="Tide Table:").grid(row=4, column=0, sticky="W")
+        self.tide_table = ttk.Treeview(frame3, columns=("Time", "Tide"), show="headings")
         self.tide_table.heading("Time", text="Time")
-        self.tide_table.heading("Water Depth", text="Water Depth")
-        self.tide_table.pack()
+        self.tide_table.heading("Tide", text="Tide")
+        
+        # populate the tide table with actual data
+        self.tide_table.grid(row=5, column=0, columnspan=2, sticky="W")
 
         next_button = tk.Button(frame2, text="Start Pre-Hold", command=self.start_third_page_timer)
         next_button.pack()
@@ -86,7 +88,7 @@ class AirGapMonitorApp:
         self.timer_label = ttk.Label(frame3, text="60:00")
         self.timer_label.grid(row=7, column=1, sticky="W")
 
-        next_button = tk.Button(frame3, text="Next Hold", command=lambda: self.show_frame("thirdPage"))
+        next_button = tk.Button(frame3, text="Next Hold", command=self.start_third_page_timer)
         next_button.grid(row=8, column=0, sticky="W")
 
         self.update_difference()

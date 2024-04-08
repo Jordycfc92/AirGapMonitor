@@ -11,8 +11,9 @@ class AirGapMonitorApp:
     def __init__(self, root):
         self.root = root
         self.frames = {} 
-        self.initialise_UI()
         self.opsMonitor = OperationMonitor.OperationMonitor()
+        self.initialise_UI()
+        self.update_calculated_airgap_periodically()
 
     def initialise_UI(self):
         #self.root.geometry('400x300') 
@@ -47,28 +48,27 @@ class AirGapMonitorApp:
         # secondPage
         frame2 = tk.Frame(self.root)
         self.frames["secondPage"] = frame2
-
-        # Tide Table
-        ttk.Label(frame2, text="Tide Table:").grid(row=4, column=0, sticky="W")
-        self.tide_table = ttk.Treeview(frame2, columns=("Time", "Tide"), show="headings")
-        self.tide_table.heading("Time", text="Time")
-        self.tide_table.heading("Tide", text="Tide")
         
-        # populate the tide table with actual data
-        self.tide_table.grid(row=5, column=0, columnspan=2, sticky="W")
+        tk.Label(frame2, text="Leg 1 length:").pack()
+        self.leg1_length_entry = tk.Entry(frame2)
+        self.leg1_length_entry.pack()
+        
+        tk.Label(frame2, text="Leg 1 penetration:").pack()
+        self.leg1_penetration_entry = tk.Entry(frame2)
+        self.leg1_penetration_entry.pack()
 
         next_button = tk.Button(frame2, text="Start Pre-Hold", command=self.start_third_page_timer)
-        next_button.grid(row=7, column=1, sticky="W")
+        next_button.pack()
 
         # thirdPage
         frame3 = tk.Frame(self.root)
         self.frames["thirdPage"] = frame3
         ttk.Label(frame3, text="LiDAR Sensor Readout:").grid(row=0, column=0, sticky="W")
-        self.lidar_readout = ttk.Label(frame3, text="Placeholder") 
+        self.lidar_readout = ttk.Label(frame3, text="Waiting for input") 
         self.lidar_readout.grid(row=1, column=0, sticky="W")
         
-        ttk.Label(frame3, text="Air Gap Readout:").grid(row=0, column=1, sticky="W")
-        self.air_gap_readout = ttk.Label(frame3, text="Placeholder") 
+        ttk.Label(frame3, text="Calculated Airgap:").grid(row=0, column=1, sticky="W")
+        self.air_gap_readout = ttk.Label(frame3, text="Waiting") 
         self.air_gap_readout.grid(row=1, column=1, sticky="W")
         
         ttk.Label(frame3, text="Difference:").grid(row=2, column=0, columnspan=2, sticky="W")
@@ -93,6 +93,18 @@ class AirGapMonitorApp:
 
         self.update_difference()
 
+    def store_leg1_length_and_pen(self):
+        try: 
+            leg1_length_input = float(self.leg1_length_entry.get())
+            leg1_pen_input = float(self.leg1_penetration_entry.get())
+            if not 1.8 < leg1_length_input < 70  or not 0< leg1_pen_input <25 :
+                raise ValueError("Leg length must be between 1.8 and 70 and leg penetration must be between 0 and 25")
+            self.opsMonitor.leg1length = leg1_length_input
+            self.opsMonitor.leg1Penetration = leg1_pen_input
+        except ValueError as e:
+            messagebox.showerror("Input Error", str(e))
+
+
     def update_tide_table(self, lat, lng):
         tide_data = self.collect_tide_data(lat, lng)
         for i in self.tide_table.get_children():
@@ -102,8 +114,13 @@ class AirGapMonitorApp:
             self.tide_table.insert("", tk.END, values=(time, sg))
 
     def start_third_page_timer(self):
+        self.store_leg1_length_and_pen()
         self.show_frame("thirdPage")
+        self.opsMonitor.preHoldCondition = True
         self.start_timer(60 * 60)  # Start the timer for 60 minutes
+
+        # Start updating the LiDAR readout on the GUI
+        self.update_lidar_readout()
 
     def start_timer(self, seconds):
         self.timer_seconds = seconds
@@ -122,16 +139,21 @@ class AirGapMonitorApp:
             self.timer_label.config(text="End of hold")
 
     def update_difference(self):
-        # call whenever LiDAR or Air Gap data is updated.
-        
-        lidar_value = 10  # Placeholder 
-        air_gap_value = 9.6  # Placeholder 
-        difference = abs(lidar_value - air_gap_value)
+        # current values of the LiDAR airgap and the calculated airgap
+        lidar_value = self.opsMonitor.currentLidarAirgap
+        calculated_airgap_value = self.opsMonitor.calculatedAirgap
+
+        # Calculate the absolute difference between the LiDAR airgap and the calculated airgap
+        difference = abs(lidar_value - calculated_airgap_value)
+
+        # Update the difference_readout label with the difference value
         self.difference_readout["text"] = f"{difference:.2f} meters"
+
+        # Colour difference red is greater than 0.5m difference
         if difference < 0.5:
-            self.difference_readout["background"] = "red"
-        else:
             self.difference_readout["background"] = "green"
+        else:
+            self.difference_readout["background"] = "red"
 
 
     def clear_frames(self):
@@ -151,12 +173,22 @@ class AirGapMonitorApp:
 
 
     def fetch_data(self):
+        try: 
+            lowest_tide_input = float(self.lowestTide.get())
+            if not 0 < lowest_tide_input < 50 :
+                raise ValueError("Lowest tide must be between 0 and 50")
+            self.opsMonitor.lowesttide = lowest_tide_input
+        except ValueError as e:
+            messagebox.showerror("Input Error", str(e))
+
         try:
             latitude = float(self.latEntry.get())
             longitude = float(self.longEntry.get())
             if not -90 <= latitude <= 90 or not -180 <= longitude <= 180:
                 raise ValueError("Latitude must be between -90 and 90 and Longitude must be between -180 and 180.")
             print(f"Fetching data for Latitude: {latitude}, Longitude: {longitude}")
+            self.opsMonitor.latitude = latitude
+            self.opsMonitor.longitude = longitude
 
             tide_data = self.opsMonitor.collect_tide_data(latitude, longitude)
             if tide_data:
@@ -173,6 +205,33 @@ class AirGapMonitorApp:
             self.tide_table.delete(i)
         for time, sg in tide_data:
             self.tide_table.insert("", tk.END, values=(time, sg))
+
+    def update_lidar_readout(self):
+        if self.opsMonitor.preHoldCondition:
+            # Fetch the current LiDAR distance
+            current_lidar_distance = self.opsMonitor.currentLidarAirgap
+            # Update the lidar_readout label
+            self.lidar_readout.config(text=f"{current_lidar_distance:.2f} meters")
+            # Schedule the next update in 1 second (1000 milliseconds)
+            self.root.after(1000, self.update_lidar_readout)
+        else:
+            # If not in pre-holdn the readout displays nothing
+            self.lidar_readout.config(text="N/A")
+
+    def update_calculated_airgap_periodically(self):
+        # Example values for latitude, longitude, and lowest tide. Replace with actual values as needed.
+        lat = self.opsMonitor.latitude
+        lng = self.opsMonitor.longitude
+        lowest_tide = self.opsMonitor.lowesttide
+
+        calculated_airgap = self.opsMonitor.monitor_calculated_airgap(lat, lng, lowest_tide)
+        if calculated_airgap is not None:
+            self.air_gap_readout.config(text=f"{calculated_airgap:.2f} meters")
+        else:
+            self.air_gap_readout.config(text="Calculation failed")
+
+        # 3600000 milliseconds = 1 hour
+        self.root.after(3600000, self.update_calculated_airgap_periodically)
 
     def run(self):
         self.show_frame("firstPage") 

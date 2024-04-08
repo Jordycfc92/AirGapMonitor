@@ -5,14 +5,18 @@ from SeaLevelAPI import SeaLevelAPI
 import arrow
 
 class OperationMonitor:
-    def __init__(self, lidarBus=1, retries=5, backoff_factor=2, currentLidarAirgap = 0.0, currentCalculatedAirgap = 0.0, preHoldCondition = False, currentOperationHistory = [0], currentLeg1length =0, currentLeg1Pen =0):
+    def __init__(self, lidarBus=1, retries=5, backoff_factor=2, currentLidarAirgap = 0.0, lat = 1, long = 1, lowest_tide = 1, currentCalculatedAirgap = 0.0, preHoldCondition = False, currentOperationHistory = [0], currentLeg1length =1.8, currentLeg1Pen =0.0):
         self.lidarAirgap = currentLidarAirgap
         self.calculatedAirgap = currentCalculatedAirgap
+        self.latitude = lat
+        self.longitude = long
+        self.lowesttide = lowest_tide
         self.leg1length = currentLeg1length
         self.leg1Penetration = currentLeg1Pen
         self.preHoldCondition = preHoldCondition
         self.history = currentOperationHistory
         self.retries = retries
+        self.currentLidarAirgap = currentLidarAirgap
         self.backoff_factor = backoff_factor
         self.lidar = Lidar_Lite()
         self.connect_with_retry(lidarBus)
@@ -37,49 +41,17 @@ class OperationMonitor:
             return False
 
 
+    def monitor_lidar_airgap(self):
+        if not self.preHoldCondition:
+            return  # Exit if not in pre-hold condition
 
-    def set_leg1_length(self):
         try:
-            user_input = float(input("Please enter leg 1 length: "))
-            if 1.8 <= user_input <= 85.0:
-                print(f"You entered: {user_input} ")
-                self.leg1length = user_input
-                return self.leg1length
-            else:
-                print("The input was outside the boundary of 1.8m and 85.0m leg length.")
-                return None
-        except ValueError:
-            print("Invalid value entered, please try again")
-            return None
-        
-    def set_leg1_penetration(self):
-        try:
-            user_input = float(input("Please enter leg 1 penetration: "))
-            if 0 <= user_input <= 30.0:
-                print(f"You entered: {user_input} ")
-                self.leg1Penetration = user_input
-                return self.leg1Penetration
-            else:
-                print("The input was outside the boundary of 0.0m and 30.0m of penetration.")
-                return None
-        except ValueError:
-            print("Invalid value entered, please try again")
-            return None
-
-    def monitor_lidar_airgap(self, ):
-        # method to measure distance every one second whilst the jack-up is in a pre-hold
-        while self.preHoldCondition:
-            try:
-                distance = (self.lidar.getDistance())/10 #added to modify cm to m
-                OperationMonitor.currentLidarAirgap = distance
-                print(f"Current airgap distance: {distance} cm")
-                self.history.append(distance)
-
-            except Exception as e:
-                print(f"An error occurred whilst getting the measurement {e}")
-
-            #for sake of number of measurments one per second is the starting figure 
-                time.sleep(1)
+            distance = self.lidar.getDistance() / 10  # Convert cm to m if necessary
+            self.currentLidarAirgap = distance
+            print(f"Current airgap distance: {distance} m")
+            self.history.append(distance)
+        except Exception as e:
+            print(f"An error occurred whilst getting the measurement: {e}")
 
     def monitor_calculated_airgap(self, lat, lng, lowest_tide):
         # latitude and longitude are provided for the sea level API call
@@ -95,10 +67,11 @@ class OperationMonitor:
             first_sg = tide_data[0][1] 
             totalWaterDepth = first_sg + lowest_tide
         
-            self.calculatedAirgap = self.leg1length - (totalWaterDepth + self.leg1Penetration)
+            calculatedAirgap = self.leg1length - (totalWaterDepth + self.leg1Penetration)
+            return calculatedAirgap
         else:
             print("Failed to fetch sea level data for airgap calculation.")
-            self.calculatedAirgap = None 
+            return None 
 
     
     def collect_tide_data(self, lat, lng):

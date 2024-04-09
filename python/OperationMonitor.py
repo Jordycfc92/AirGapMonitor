@@ -46,7 +46,7 @@ class OperationMonitor:
             return  # Exit if not in pre-hold condition
 
         try:
-            distance = self.lidar.getDistance() / 10  # Convert cm to m. This is using the third party lidar code to get a distance for the sensor
+            distance = self.lidar.getDistance() / 100  # Convert mm to m. This is using the third party lidar code to get a distance for the sensor
             self.currentLidarAirgap = (distance - 25.0) # *** offset for sensor locations here *** currently 25m above bottom of hull
             print(f"Current airgap distance: {distance} m")
             self.history.append(distance)

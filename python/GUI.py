@@ -209,6 +209,7 @@ class AirGapMonitorApp:
     def update_lidar_readout(self):
         if self.opsMonitor.preHoldCondition:
             # Fetch the current LiDAR distance
+            self.opsMonitor.monitor_lidar_airgap()
             current_lidar_distance = self.opsMonitor.currentLidarAirgap
             # Update the lidar_readout label
             self.lidar_readout.config(text=f"{current_lidar_distance:.2f} meters")

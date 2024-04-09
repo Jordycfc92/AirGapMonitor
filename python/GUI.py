@@ -13,7 +13,7 @@ class AirGapMonitorApp:
         self.frames = {} 
         self.opsMonitor = OperationMonitor.OperationMonitor()
         self.initialise_UI()
-        self.update_calculated_airgap_periodically()
+        self.update_calculated_airgap_hourly()
 
     def initialise_UI(self):
         #self.root.geometry('400x300') 
@@ -218,7 +218,7 @@ class AirGapMonitorApp:
             # If not in pre-holdn the readout displays nothing
             self.lidar_readout.config(text="N/A")
 
-    def update_calculated_airgap_periodically(self):
+    def update_calculated_airgap_hourly(self):
         # Example values for latitude, longitude, and lowest tide. Replace with actual values as needed.
         lat = self.opsMonitor.latitude
         lng = self.opsMonitor.longitude
@@ -231,7 +231,7 @@ class AirGapMonitorApp:
             self.air_gap_readout.config(text="Calculation failed")
 
         # 3600000 milliseconds = 1 hour
-        self.root.after(3600000, self.update_calculated_airgap_periodically)
+        self.root.after(3600000, self.update_calculated_airgap_hourly)
 
     def run(self):
         self.show_frame("firstPage") 

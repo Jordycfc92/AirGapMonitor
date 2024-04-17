@@ -16,59 +16,67 @@ class AirGapMonitorApp:
         self.update_calculated_airgap_hourly()
 
     def initialise_UI(self):
-        #self.root.geometry('400x300') 
+        # Set window title and minimum size
         self.root.title("AirGapMonitor")
+        self.root.minsize(600, 400)
+
+        # Style configuration
+        style = ttk.Style()
+        style.configure('TButton', font=('Helvetica', 12))
+        style.configure('TLabel', font=('Helvetica', 12), padding=(10, 5))
+        style.configure('TEntry', padding=5)
 
         # firstPage
-        frame1 = tk.Frame(self.root)
+        frame1 = ttk.Frame(self.root)
         self.frames["firstPage"] = frame1
-        frame1.pack(fill="both", expand=True)
-
-        tk.Label(frame1, text="Please input the Coordinates of the Jacking Location").pack()
+        frame1.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
         
-        tk.Label(frame1, text="Jacking Operation Number:").pack()
-        self.JackingOperationEntry = tk.Entry(frame1)
-        self.JackingOperationEntry.pack() 
-
-        tk.Label(frame1, text="Lowest Astronomical Tide for location:").pack()
-        self.lowestTide = tk.Entry(frame1)
-        self.lowestTide.pack()
-
-        tk.Label(frame1, text="Latitude:").pack()
-        self.latEntry = tk.Entry(frame1)
-        self.latEntry.pack()
+        ttk.Label(frame1, text="Please input the Coordinates of the Jacking Location").pack()
         
-        tk.Label(frame1, text="Longitude:").pack()
-        self.longEntry = tk.Entry(frame1)
-        self.longEntry.pack()
+        ttk.Label(frame1, text="Jacking Operation Number:").pack()
+        self.JackingOperationEntry = ttk.Entry(frame1)
+        self.JackingOperationEntry.pack(pady=(0, 10))
         
-        self.fetch_button = tk.Button(frame1, text="Fetch Data", command=self.fetch_data)
+        ttk.Label(frame1, text="Lowest Astronomical Tide for location:").pack()
+        self.lowestTide = ttk.Entry(frame1)
+        self.lowestTide.pack(pady=(0, 10))
+
+        ttk.Label(frame1, text="Latitude:").pack()
+        self.latEntry = ttk.Entry(frame1)
+        self.latEntry.pack(pady=(0, 10))
+        
+        ttk.Label(frame1, text="Longitude:").pack()
+        self.longEntry = ttk.Entry(frame1)
+        self.longEntry.pack(pady=(0, 10))
+        
+        self.fetch_button = ttk.Button(frame1, text="Fetch Data", command=self.fetch_data)
         self.fetch_button.pack()
 
         # secondPage
-        frame2 = tk.Frame(self.root)
+        frame2 = ttk.Frame(self.root)
         self.frames["secondPage"] = frame2
-        
-        tk.Label(frame2, text="Leg 1 length:").pack()
-        self.leg1_length_entry = tk.Entry(frame2)
-        self.leg1_length_entry.pack()
-        
-        tk.Label(frame2, text="Leg 1 penetration:").pack()
-        self.leg1_penetration_entry = tk.Entry(frame2)
-        self.leg1_penetration_entry.pack()
 
-        next_button = tk.Button(frame2, text="Start Pre-Hold", command=self.start_third_page_timer)
+        ttk.Label(frame2, text="Leg 1 length:").pack()
+        self.leg1_length_entry = ttk.Entry(frame2)
+        self.leg1_length_entry.pack(pady=(0, 10))
+        
+        ttk.Label(frame2, text="Leg 1 penetration:").pack()
+        self.leg1_penetration_entry = ttk.Entry(frame2)
+        self.leg1_penetration_entry.pack(pady=(0, 10))
+
+        next_button = ttk.Button(frame2, text="Start Pre-Hold", command=self.start_third_page_timer)
         next_button.pack()
 
         # thirdPage
-        frame3 = tk.Frame(self.root)
+        frame3 = ttk.Frame(self.root)
         self.frames["thirdPage"] = frame3
+
         ttk.Label(frame3, text="LiDAR Sensor Readout:").grid(row=0, column=0, sticky="W")
-        self.lidar_readout = ttk.Label(frame3, text="Waiting for input") 
+        self.lidar_readout = ttk.Label(frame3, text="Waiting for input")
         self.lidar_readout.grid(row=1, column=0, sticky="W")
         
         ttk.Label(frame3, text="Calculated Airgap:").grid(row=0, column=1, sticky="W")
-        self.air_gap_readout = ttk.Label(frame3, text="Waiting") 
+        self.air_gap_readout = ttk.Label(frame3, text="Waiting")
         self.air_gap_readout.grid(row=1, column=1, sticky="W")
         
         ttk.Label(frame3, text="Difference:").grid(row=2, column=0, columnspan=2, sticky="W")
@@ -80,7 +88,6 @@ class AirGapMonitorApp:
         self.tide_table = ttk.Treeview(frame3, columns=("Time", "Tide"), show="headings")
         self.tide_table.heading("Time", text="Time")
         self.tide_table.heading("Tide", text="Tide")
-        
         # populate the tide table with actual data
         self.tide_table.grid(row=5, column=0, columnspan=2, sticky="W")
 
@@ -88,8 +95,12 @@ class AirGapMonitorApp:
         self.timer_label = ttk.Label(frame3, text="60:00")
         self.timer_label.grid(row=7, column=1, sticky="W")
 
-        next_button = tk.Button(frame3, text="Next Hold", command=self.start_third_page_timer)
+        next_button = ttk.Button(frame3, text="Next Hold", command=self.reset_timer)
         next_button.grid(row=8, column=0, sticky="W")
+
+        finish_button = ttk.Button(frame3, text="Finish Operation", command=self.finish_operation)
+        finish_button.grid(row=8, column=1, sticky="W")
+
 
         self.update_difference()
 
@@ -117,14 +128,15 @@ class AirGapMonitorApp:
         self.store_leg1_length_and_pen()
         self.show_frame("thirdPage")
         self.opsMonitor.preHoldCondition = True
-        self.start_timer(60 * 60)  # Start the timer for 60 minutes
+        self.start_timer(60 * 60, True)  # Start the timer for 60 minutes
 
         # Start updating the LiDAR readout on the GUI
         self.update_lidar_readout()
 
-    def start_timer(self, seconds):
+    def start_timer(self, seconds, reset):
         self.timer_seconds = seconds
-        self.update_timer()
+        if reset:
+            self.update_timer()
 
     def update_timer(self):
         if self.timer_seconds > 0:
@@ -137,6 +149,10 @@ class AirGapMonitorApp:
             self.root.after(1000, self.update_timer)
         else:
             self.timer_label.config(text="End of hold")
+
+    def reset_timer(self):
+        self.start_timer(60 * 60, False)  # Resetting to 60 minutes
+        
 
     def update_difference(self):
         # current values of the LiDAR airgap and the calculated airgap
@@ -233,6 +249,10 @@ class AirGapMonitorApp:
 
         # 3600000 milliseconds = 1 hour
         self.root.after(3600000, self.update_calculated_airgap_hourly)
+
+    def finish_operation(self):
+        # Perform any cleanup needed and close the application
+        self.root.quit()  # This will close the GUI window
 
     def run(self):
         self.show_frame("firstPage") 

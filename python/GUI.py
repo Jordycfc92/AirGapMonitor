@@ -82,14 +82,17 @@ class AirGapMonitorApp:
         ttk.Label(frame3, text="Difference:").grid(row=2, column=0, columnspan=2, sticky="W")
         self.difference_readout = ttk.Label(frame3, text="Calculating...", background="white")
         self.difference_readout.grid(row=3, column=0, columnspan=2, sticky="W")
+
+        self.avg_airgap_label = ttk.Label(frame3, text="Average Airgap: Calculating...")
+        self.avg_airgap_label.grid(row=4, column=0, sticky="W")
         
         # Tide Table
-        ttk.Label(frame3, text="Tide Table:").grid(row=4, column=0, sticky="W")
+        ttk.Label(frame3, text="Tide Table:").grid(row=5, column=0, sticky="W")
         self.tide_table = ttk.Treeview(frame3, columns=("Time", "Tide"), show="headings")
         self.tide_table.heading("Time", text="Time")
         self.tide_table.heading("Tide", text="Tide")
         # populate the tide table with actual data
-        self.tide_table.grid(row=5, column=0, columnspan=2, sticky="W")
+        self.tide_table.grid(row=6, column=0, columnspan=2, sticky="W")
 
         ttk.Label(frame3, text="Countdown Timer:").grid(row=7, column=0, sticky="W")
         self.timer_label = ttk.Label(frame3, text="60:00")
@@ -132,6 +135,9 @@ class AirGapMonitorApp:
 
         # Start updating the LiDAR readout on the GUI
         self.update_lidar_readout()
+
+        # Start updating Lidar average readout
+        self.update_avg_airgap()
 
     def start_timer(self, seconds, reset):
         self.timer_seconds = seconds
@@ -249,6 +255,16 @@ class AirGapMonitorApp:
 
         # 3600000 milliseconds = 1 hour
         self.root.after(3600000, self.update_calculated_airgap_hourly)
+
+    def update_avg_airgap(self):
+        average = self.opsMonitor.get_current_airgap_average()
+        if average is not None:
+            self.avg_airgap_label.config(text=f"Average Airgap: {average:.2f} meters")
+        else:
+            self.avg_airgap_label.config(text="Average Airgap: Calculating...")
+        # Schedule the next update in 5 seconds (5000 milliseconds)
+        self.root.after(5000, self.update_avg_airgap)
+
 
     def finish_operation(self):
         # Perform any cleanup needed and close the application

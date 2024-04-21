@@ -89,14 +89,13 @@ class OperationMonitor:
             return None
          
 
-    def show_current_airgap_average (self,):
-        #average taken over five minutes, one measurement per second > 60*5
+    def get_current_airgap_average(self):
+        # Average taken over five minutes, one measurement per second > 60 * 5
         if len(self.history) < 300:
-            print("Not enough data for a 5-minute average.")
-            return
-
+            return None  # Not enough data
         five_minute_average = sum(self.history[-300:]) / 300
-        print(f"5-minute average airgap distance: {five_minute_average} cm")
+        return five_minute_average
+
 
     def show_operation_report(self):
         pass

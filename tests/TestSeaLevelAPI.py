@@ -1,6 +1,11 @@
+import sys
+sys.path.append('/Users/jordanmcmillan/VSCode/AirGapMonitor/python')
 import unittest
 from unittest.mock import patch, Mock
+
+import requests
 from SeaLevelAPI import SeaLevelAPI
+
 
 class TestSeaLevelAPI(unittest.TestCase):
 

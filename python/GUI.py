@@ -251,8 +251,12 @@ class AirGapMonitorApp:
         self.root.after(3600000, self.update_calculated_airgap_hourly)
 
     def finish_operation(self):
+        if hasattr(self, 'timer_event'):
+            self.root.after_cancel(self.timer_event)
         # Perform any cleanup needed and close the application
-        self.root.quit()  # This will close the GUI window
+        self.opsMonitor.preHoldCondition = False
+        self.opsMonitor.lidar.disconnect()
+        self.root.destroy()  # This will close the GUI window
 
     def run(self):
         self.show_frame("firstPage") 

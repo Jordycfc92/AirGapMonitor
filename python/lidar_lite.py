@@ -19,6 +19,12 @@ class Lidar_Lite():
       return 0
     except:
       return -1
+    
+  def disconnect(self):
+    if self.bus:
+        self.bus.close()            
+        self.bus = None
+        print("Lidar connection closed.")
 
   def writeAndWait(self, register, value):
     self.bus.write_byte_data(self.address, register, value);

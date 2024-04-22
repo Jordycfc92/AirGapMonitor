@@ -14,7 +14,37 @@ class SeaLevelAPI:
         #Proving APIKey is correct
         #print("this is the api key" + self.api_key)
 
+    
     def fetch_data(self, lat, lng, start, end):
+        headers = {'Authorization': self.api_key}
+        params = {
+            'lat': lat,
+            'lng': lng,
+            'start': start.timestamp(),
+            'end': end.timestamp(),
+        }
+        try:
+            response = requests.get(self.base_url, headers=headers, params=params)
+            response.raise_for_status()
+            return response.json()
+        
+        except requests.exceptions.HTTPError as errhttp:
+            print(f"Http Error: {errhttp}")
+            raise
+        except requests.exceptions.ConnectionError as errconnection:
+            print(f"Connection Error: {errconnection}")
+            raise
+        except requests.exceptions.Timeout as errtimeout:
+            print(f"Timeout Error: {errtimeout}")
+            raise
+        except requests.exceptions.RequestException as err:
+            print(f"Unknown Error: {err}")
+            raise
+
+
+""" 
+
+   def fetch_data(self, lat, lng, start, end):
         headers = {'Authorization': self.api_key}
         params = {
             'lat': lat,
@@ -34,10 +64,14 @@ class SeaLevelAPI:
         except requests.exceptions.Timeout as errtimeout:
             print(f"Timeout Error: {errtimeout}")
         except requests.exceptions.RequestException as err:
-            print(f"Unknown Error: {err}")
-    
+            print(f"Unknown Error: {err}") 
 
-""" fetch = SeaLevelAPI('exclude/config.env')
+
+
+
+
+
+fetch = SeaLevelAPI('exclude/config.env')
 data = fetch.fetch_data(43.38, -3.01, arrow.now().floor('hour'), arrow.now().floor('hour').shift(hours=8))
 
 for entry in data['data']:
@@ -47,4 +81,10 @@ for entry in data['data']:
     print(f"Time: {time.format('HH:mm')}, tide: {sg}")
 
 #pretty_json = json.dumps(data, indent=4)
-#print(pretty_json)  """
+#print(pretty_json)  
+
+
+
+
+
+"""

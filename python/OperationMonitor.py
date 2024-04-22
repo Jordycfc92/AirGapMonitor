@@ -27,18 +27,16 @@ class OperationMonitor:
         attempt = 0
         while attempt < self.retries:
             print(f"Attempt {attempt + 1} to connect to the LiDAR sensor.")
-            statusConnection = self.lidar.connect(lidarBus)
-            
-            if statusConnection == 0:
+            if self.lidar.connect(lidarBus) == 0:
                 print("Lidar sensor connection established.")
                 return True
             else:
                 print("Connection not established, retrying...")
                 time.sleep((2 ** attempt) * self.backoff_factor)
                 attempt += 1
-        
-            print("Failed to establish a connection after several attempts.")
-            return False
+
+        print("Failed to establish a connection after several attempts.")
+        return False
 
 
     def monitor_lidar_airgap(self):

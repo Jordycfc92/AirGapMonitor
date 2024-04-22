@@ -2,7 +2,15 @@
 from tkinter import Tk
 import unittest
 from unittest.mock import patch
-from GUI import AirGapMonitorApp  
+
+import sys
+import os
+
+correct_path = os.path.abspath('python')
+print("Path being added to sys.path:", correct_path)
+sys.path.append(correct_path)
+
+from GUI import AirGapMonitorApp 
 
 class TestAirGapMonitorApp(unittest.TestCase):
     def setUp(self):

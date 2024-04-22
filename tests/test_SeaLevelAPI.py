@@ -1,4 +1,11 @@
+import sys
+import os
 
+correct_path = os.path.abspath('python')
+print("Path being added to sys.path:", correct_path)
+sys.path.append(correct_path)
+
+import requests
 import unittest
 from unittest.mock import patch, MagicMock
 
@@ -8,9 +15,9 @@ import arrow
 class TestSeaLevelAPI(unittest.TestCase):
     def setUp(self):
         # Load a dummy environment file or set environment variables directly
-        self.api = SeaLevelAPI.SeaLevelAPI('path/to/dummy/env')
+        self.api = SeaLevelAPI('path/to/dummy/env')
 
-    @patch('seaLevelAPI.requests.get')
+    @patch('SeaLevelAPI.requests.get')
     def test_fetch_data(self, mock_get):
         # Set up the mock to return a successful response
         mock_response = MagicMock()
@@ -28,13 +35,13 @@ class TestSeaLevelAPI(unittest.TestCase):
         self.assertIsInstance(result, dict)
         mock_get.assert_called_once()
 
-    @patch('seaLevelAPI.requests.get')
+    @patch('SeaLevelAPI.requests.get')
     def test_fetch_data_failure(self, mock_get):
-        # Simulate a connection error
-        mock_get.side_effect = SeaLevelAPI.requests.exceptions.ConnectionError()
-        
-        # Call fetch_data and handle exceptions
-        with self.assertRaises(SeaLevelAPI.requests.exceptions.ConnectionError):
+
+        mock_get.side_effect = requests.exceptions.ConnectionError
+
+        # Attempt to call fetch_data to trigger the connection error.
+        with self.assertRaises(requests.exceptions.ConnectionError):  
             self.api.fetch_data(43.38, -3.01, arrow.now(), arrow.now().shift(hours=8))
 
     def tearDown(self):

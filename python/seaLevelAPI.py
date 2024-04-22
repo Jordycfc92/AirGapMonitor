@@ -30,16 +30,16 @@ class SeaLevelAPI:
         
         except requests.exceptions.HTTPError as errhttp:
             print(f"Http Error: {errhttp}")
-            raise
+            
         except requests.exceptions.ConnectionError as errconnection:
             print(f"Connection Error: {errconnection}")
-            raise
+            
         except requests.exceptions.Timeout as errtimeout:
             print(f"Timeout Error: {errtimeout}")
-            raise
+            
         except requests.exceptions.RequestException as err:
             print(f"Unknown Error: {err}")
-            raise
+            
 
 
 """ 

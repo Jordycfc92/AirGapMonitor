@@ -15,6 +15,8 @@ use this command to install `i2c-dev`:
 
 If you wish to test this software you will need to use either and Linux distro or MacOS system, it will not open on windows due to the missing 'fcntl' module.
 
-To use this application first install the packages listed in the requirements.txt file using 'pip install -r requirements.txt'.
+To use this application, first install the packages listed in the requirements.txt file using 'pip install -r requirements.txt'.
 
-You'll need an api key from Stormglass.io in the config.env file and to change the the path to that file in the constructor of the OperationMonitor file. 
+You'll need an API key from Stormglass.io in the config.env file. You will also need to change the path to that file in the constructor of the OperationMonitor file. 
+
+Start the application from the GUI.py file

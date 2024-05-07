@@ -99,7 +99,7 @@ class AirGapMonitorApp:
         next_button.grid(row=8, column=0, sticky="W")
 
         finish_button = ttk.Button(frame3, text="Finish Operation", command=self.finish_operation)
-        finish_button.grid(row=8, column=1, sticky="W")
+        finish_button.grid(row=8, column=3, sticky="W")
 
 
         self.update_difference()
@@ -133,9 +133,9 @@ class AirGapMonitorApp:
         # Start updating the LiDAR readout on the GUI
         self.update_lidar_readout()
 
-    def start_timer(self, seconds, reset):
+    def start_timer(self, seconds, start):
         self.timer_seconds = seconds
-        if reset:
+        if start:
             self.update_timer()
 
     def update_timer(self):
@@ -255,7 +255,10 @@ class AirGapMonitorApp:
             self.root.after_cancel(self.timer_event)
         # Perform any cleanup needed and close the application
         self.opsMonitor.preHoldCondition = False
-        self.opsMonitor.lidar.disconnect()
+        
+        if self.opsMonitor.currentLidarAirgap != 0.0: # this is the default value when connecting, show allow disconnect in event lidar sensor not connected
+            self.opsMonitor.lidar.disconnect()
+        
         self.root.destroy()  # This will close the GUI window
 
     def run(self):

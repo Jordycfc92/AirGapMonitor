@@ -4,6 +4,7 @@ from tkinter import ttk
 from traceback import clear_frames
 import datetime
 import OperationMonitor
+import JackingOperationReport
 
 print(tk.Tcl().eval('info patchlevel'))
 
@@ -259,6 +260,10 @@ class AirGapMonitorApp:
         if self.opsMonitor.currentLidarAirgap != 0.0: # this is the default value when connecting, show allow disconnect in event lidar sensor not connected
             self.opsMonitor.lidar.disconnect()
         
+        # Capture and save the operation report
+        report = JackingOperationReport()
+        report.main()  # Generate and save the report
+
         self.root.destroy()  # This will close the GUI window
 
     def run(self):

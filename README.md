@@ -13,7 +13,10 @@ use this command to install `i2c-dev`:
 
 `apt-get install libi2c-dev`
 
-I found a great tutorial (using my library!) on this website: https://mobiusstripblog.wordpress.com/2016/12/26/first-blog-post/
-Please check it out!
+If you wish to test this software you will need to use either and Linux distro or MacOS system, it will not open on windows due to the missing 'fcntl' module.
 
+To use this application, first install the packages listed in the requirements.txt file using 'pip install -r requirements.txt'.
 
+You'll need an API key from Stormglass.io in the config.env file. You will also need to change the path to that file in the constructor of the OperationMonitor file. 
+
+Start the application from the GUI.py file

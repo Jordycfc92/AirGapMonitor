@@ -261,7 +261,7 @@ class AirGapMonitorApp:
             self.opsMonitor.lidar.disconnect()
         
         # Capture and save the operation report
-        report = JackingOperationReport()
+        report = JackingOperationReport.JackingOperationReport()
         report.main()  # Generate and save the report
 
         self.root.destroy()  # This will close the GUI window

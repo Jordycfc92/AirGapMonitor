@@ -4,7 +4,7 @@ from tkinter import ttk
 from traceback import clear_frames
 import datetime
 import OperationMonitor
-import JackingOperationReport
+import jackingOperationReport
 
 print(tk.Tcl().eval('info patchlevel'))
 
@@ -14,7 +14,7 @@ class AirGapMonitorApp:
         self.frames = {} 
         self.opsMonitor = OperationMonitor.OperationMonitor()
         self.initialise_UI()
-        self.update_calculated_airgap_hourly()
+        #self.update_calculated_airgap_hourly()
 
     def initialise_UI(self):
         # Set window title and minimum size
@@ -103,7 +103,8 @@ class AirGapMonitorApp:
         finish_button.grid(row=8, column=3, sticky="W")
 
 
-        self.update_difference()
+        #self.update_difference()
+        
 
     def store_leg1_length_and_pen(self):
         try: 
@@ -113,6 +114,7 @@ class AirGapMonitorApp:
                 raise ValueError("Leg length must be between 1.8 and 70 and leg penetration must be between 0 and 25")
             self.opsMonitor.leg1length = leg1_length_input
             self.opsMonitor.leg1Penetration = leg1_pen_input
+            print (leg1_length_input, leg1_pen_input)
         except ValueError as e:
             messagebox.showerror("Input Error", str(e))
 
@@ -133,6 +135,7 @@ class AirGapMonitorApp:
 
         # Start updating the LiDAR readout on the GUI
         self.update_lidar_readout()
+        self.update_calculated_airgap_hourly()
 
     def start_timer(self, seconds, start):
         self.timer_seconds = seconds
@@ -261,7 +264,7 @@ class AirGapMonitorApp:
             self.opsMonitor.lidar.disconnect()
         
         # Capture and save the operation report
-        report = JackingOperationReport.JackingOperationReport()
+        report = jackingOperationReport.JackingOperationReport()
         report.main()  # Generate and save the report
 
         self.root.destroy()  # This will close the GUI window

@@ -1,11 +1,11 @@
 import time
 from lidar_lite import Lidar_Lite
 import array as arr
-from SeaLevelAPI import SeaLevelAPI
+from seaLevelAPI import SeaLevelAPI
 import arrow
 
 class OperationMonitor:
-    def __init__(self, lidarBus=1, retries=5, backoff_factor=2, currentLidarAirgap = 0.0, lat = 1, long = 1, lowest_tide = 1, currentCalculatedAirgap = 0.0, preHoldCondition = False, currentOperationHistory = [0], currentLeg1length =1.8, currentLeg1Pen =0.0):
+    def __init__(self, lidarBus=1, retries=1, backoff_factor=2, currentLidarAirgap = 0.0, lat = 1, long = 1, lowest_tide = 1, currentCalculatedAirgap = 0.0, preHoldCondition = False, currentOperationHistory = [0], currentLeg1length =1.8, currentLeg1Pen =0.0):
         self.lidarAirgap = currentLidarAirgap
         self.calculatedAirgap = currentCalculatedAirgap
         self.latitude = lat
@@ -20,7 +20,7 @@ class OperationMonitor:
         self.backoff_factor = backoff_factor
         self.lidar = Lidar_Lite()
         self.connect_with_retry(lidarBus)
-        self.seaLevelAPI = SeaLevelAPI('exclude/config.env') # instance of sealevelAPI
+        self.seaLevelAPI = SeaLevelAPI('/home/twist/projects/AirGapMonitor/exclude/config.env') # instance of sealevelAPI
         
 
     def connect_with_retry(self, lidarBus):
@@ -68,6 +68,7 @@ class OperationMonitor:
             totalWaterDepth = first_sg + lowest_tide
         
             calculatedAirgap = self.leg1length - (totalWaterDepth + self.leg1Penetration)
+            print("Total water depth ", totalWaterDepth,"\n leg 1 penetration ", self.leg1Penetration, "\n leg 1 length", self.leg1length, "\n Calculate air gap ", calculatedAirgap)
             return calculatedAirgap
         else:
             print("Failed to fetch sea level data for airgap calculation.")
